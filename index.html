@@ -1,7 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EBSA Alumni Network</title>
+<meta name="description" content="Search and connect with UC Davis EBSA alumni by industry, company, and grad year.">
+<meta name="theme-color" content="#0099cc">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='0' y='0' width='14.5' height='14.5' rx='2' fill='%23ffffff' stroke='%23e3eef3' stroke-width='1'/%3E%3Crect x='17.5' y='0' width='14.5' height='14.5' rx='2' fill='%2352cceb'/%3E%3Crect x='0' y='17.5' width='14.5' height='14.5' rx='2' fill='%237ecfea'/%3E%3Crect x='17.5' y='17.5' width='14.5' height='14.5' rx='2' fill='%230099cc'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@400;600;700;800&display=swap" rel="stylesheet">
+<!-- Firebase (used only for optional "sign in to sync" — see FIREBASE_CONFIG near the bottom of the script). Safe to leave in even before it's configured; the site falls back to browser-only storage until it is. -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <style>
   :root{
     --ink:#171a1c;
@@ -10,126 +22,164 @@
     --surface-2:#eaf6fb;
     --line:#d6ecf4;
     --muted:#666666;
+    --muted-2:#8a97a0;
     --accent:#0099cc;
+    --accent-2:#52cceb;
     --accent-ink:#00658a;
     --accent-soft:#dff3fa;
     --star:#0099cc;
-    --star-off:#b9dfec;
+    --star-off:#c3dfe9;
     --focus:#0099cc;
-    --shadow: 0 1px 2px rgba(0,60,80,.05), 0 6px 16px -8px rgba(0,60,80,.16);
+    --avatar-bg:#dff3fa;
+    --avatar-ink:#00658a;
+    --outreach-border:#b9dfec;
+    --shadow-sm: 0 1px 2px rgba(11,60,80,.05);
+    --shadow-md: 0 1px 2px rgba(11,60,80,.04), 0 8px 20px -10px rgba(11,60,80,.22);
+    --shadow-lg: 0 2px 4px rgba(11,60,80,.06), 0 16px 32px -14px rgba(11,60,80,.28);
+    --radius-sm:8px;
+    --radius-md:12px;
+    --radius-lg:16px;
+    --ease: cubic-bezier(.2,.7,.3,1);
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
       --ink:#eef6fa;
-      --paper:#0c1418;
+      --paper:#0b1216;
       --surface:#121d23;
-      --surface-2:#152631;
-      --line:#20404d;
-      --muted:#93a6ad;
+      --surface-2:#16232a;
+      --line:#22404c;
+      --muted:#9fb0b8;
+      --muted-2:#71838c;
       --accent:#52cceb;
+      --accent-2:#7ecfea;
       --accent-ink:#bdeaf9;
       --accent-soft:#123241;
       --star:#52cceb;
       --star-off:#3a4d55;
       --focus:#52cceb;
-      --shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 20px -8px rgba(0,0,0,.55);
+      --avatar-bg:#123241;
+      --avatar-ink:#8fdcf4;
+      --outreach-border:#2c4a56;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,.3);
+      --shadow-md: 0 1px 2px rgba(0,0,0,.35), 0 10px 24px -10px rgba(0,0,0,.55);
+      --shadow-lg: 0 2px 4px rgba(0,0,0,.4), 0 20px 40px -16px rgba(0,0,0,.6);
     }
   }
   :root[data-theme="dark"]{
-    --ink:#eef6fa;
-    --paper:#0c1418;
-    --surface:#121d23;
-    --surface-2:#152631;
-    --line:#20404d;
-    --muted:#93a6ad;
-    --accent:#52cceb;
-    --accent-ink:#bdeaf9;
-    --accent-soft:#123241;
-    --star:#52cceb;
-    --star-off:#3a4d55;
-    --focus:#52cceb;
-    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 20px -8px rgba(0,0,0,.55);
+    --ink:#eef6fa; --paper:#0b1216; --surface:#121d23; --surface-2:#16232a; --line:#22404c;
+    --muted:#9fb0b8; --muted-2:#71838c; --accent:#52cceb; --accent-2:#7ecfea; --accent-ink:#bdeaf9;
+    --accent-soft:#123241; --star:#52cceb; --star-off:#3a4d55; --focus:#52cceb;
+    --avatar-bg:#123241; --avatar-ink:#8fdcf4; --outreach-border:#2c4a56;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.3);
+    --shadow-md: 0 1px 2px rgba(0,0,0,.35), 0 10px 24px -10px rgba(0,0,0,.55);
+    --shadow-lg: 0 2px 4px rgba(0,0,0,.4), 0 20px 40px -16px rgba(0,0,0,.6);
   }
 
   *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
   body{
     margin:0;
     background:var(--paper);
     color:var(--ink);
     font-family:"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    padding-inline:0;
+    -webkit-font-smoothing:antialiased;
   }
+  a{ color:inherit; }
   .wrap{
-    max-width:1080px;
+    max-width:1100px;
     margin:0 auto;
-    padding-inline:20px;
-    padding-block:0 48px;
+    padding-inline:24px;
+    padding-block:0 56px;
+  }
+
+  /* ---------- header / hero ---------- */
+  .accent-bar{
+    height:4px;
+    background:linear-gradient(90deg, var(--accent-2), var(--accent));
   }
   header.top{
     position:sticky;
-    top:env(safe-area-inset-top,0px);
+    top:0;
     z-index:20;
     background:var(--paper);
     border-bottom:1px solid var(--line);
-    padding-block:18px 14px;
-    padding-inline:20px;
+    transition:box-shadow .25s var(--ease);
+    overflow:hidden;
   }
+  header.top.is-scrolled{ box-shadow:var(--shadow-sm); }
+  .header-decor{
+    position:absolute;
+    inset:0;
+    overflow:hidden;
+    pointer-events:none;
+    z-index:0;
+  }
+  .header-decor span{
+    position:absolute;
+    display:block;
+  }
+  .header-decor .d1{ width:170px; height:170px; top:-50px; right:40px; background:var(--accent-2); opacity:.10; transform:rotate(14deg); }
+  .header-decor .d2{ width:90px; height:90px; top:50px; right:280px; background:var(--accent); opacity:.08; transform:rotate(-10deg); }
+  .header-decor .d3{ width:60px; height:60px; top:140px; right:30px; background:#7ecfea; opacity:.14; transform:rotate(22deg); }
+  .header-decor .d4{ width:210px; height:210px; top:-90px; right:-70px; background:var(--accent); opacity:.06; transform:rotate(8deg); }
+  .header-decor .d5{ width:40px; height:40px; top:20px; right:420px; background:var(--accent-2); opacity:.10; transform:rotate(-18deg); }
   .top-inner{
-    max-width:1080px;
+    max-width:1100px;
     margin:0 auto;
+    padding:28px 24px 18px;
+    position:relative;
+    z-index:1;
   }
-  .brand{
+  .brand-row{
     display:flex;
     align-items:center;
-    gap:10px;
+    gap:14px;
     flex-wrap:wrap;
   }
   .logo-mark{
-    width:26px;
-    height:26px;
+    width:40px;
+    height:40px;
     flex:0 0 auto;
-    border-radius:4px;
-    overflow:hidden;
+    border-radius:10px;
+    box-shadow:var(--shadow-sm);
   }
+  .brand-text{ min-width:0; }
   h1{
-    font-family:"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    font-weight:800;
-    font-size:clamp(22px,4vw,29px);
+    font-family:'Playfair Display', serif;
+    font-weight:700;
+    font-size:clamp(26px,4.2vw,38px);
     margin:0;
     letter-spacing:-.01em;
-    text-wrap:balance;
-  }
-  .brand .count{
-    font-family:"Inter", monospace;
-    font-variant-numeric:tabular-nums;
-    color:var(--muted);
-    font-size:14px;
+    line-height:1.15;
   }
   .tagline{
-    margin:4px 0 16px;
-    color:var(--muted);
-    font-size:14.5px;
-    max-width:60ch;
+    margin:16px 0 20px;
+    color:var(--ink);
+    font-size:15px;
+    line-height:1.55;
+    max-width:62ch;
   }
+  .tagline b{ font-weight:700; }
   .controls{
     display:flex;
     flex-wrap:wrap;
     gap:10px;
     align-items:center;
   }
+  .controls[hidden]{ display:none; }
   .search-box{
     position:relative;
-    flex:1 1 240px;
+    flex:1 1 260px;
     min-width:180px;
   }
   .search-box svg{
     position:absolute;
-    left:11px;
+    left:13px;
     top:50%;
     transform:translateY(-50%);
     width:16px;
     height:16px;
-    color:var(--muted);
+    color:var(--muted-2);
     pointer-events:none;
   }
   input[type="search"], select{
@@ -138,41 +188,49 @@
     color:var(--ink);
     background:var(--surface);
     border:1px solid var(--line);
-    border-radius:9px;
-    padding:9px 12px;
+    border-radius:var(--radius-sm);
+    padding:10px 13px;
+    transition:border-color .15s var(--ease), box-shadow .15s var(--ease);
   }
   input[type="search"]{
     width:100%;
-    padding-left:34px;
+    padding-left:37px;
   }
-  input[type="search"]:focus, select:focus, button:focus-visible{
-    outline:2px solid var(--focus);
-    outline-offset:1px;
+  input[type="search"]:hover, select:hover{ border-color:var(--muted-2); }
+  input[type="search"]:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible{
+    outline:none;
+    border-color:var(--focus);
+    box-shadow:0 0 0 3px var(--accent-soft);
   }
   select{
     appearance:none;
     -webkit-appearance:none;
-    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23786e59' stroke-width='1.6'><path d='M6 8l4 4 4-4'/></svg>");
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23666666' stroke-width='1.6'><path d='M6 8l4 4 4-4'/></svg>");
     background-repeat:no-repeat;
-    background-position:right 9px center;
-    padding-right:28px;
+    background-position:right 11px center;
+    padding-right:34px;
+    min-width:162px;
     cursor:pointer;
   }
   .chip-toggle{
     font-family:inherit;
-    font-size:13.5px;
-    font-weight:500;
+    font-size:12.5px;
+    font-weight:700;
     color:var(--ink);
     background:var(--surface);
     border:1px solid var(--line);
     border-radius:20px;
-    padding:8px 14px;
+    padding:9px 15px;
     cursor:pointer;
     display:inline-flex;
     align-items:center;
-    gap:6px;
+    gap:7px;
     white-space:nowrap;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    transition:background .15s var(--ease), border-color .15s var(--ease), color .15s var(--ease);
   }
+  .chip-toggle:hover{ border-color:var(--muted-2); }
   .chip-toggle svg{width:14px;height:14px;}
   .chip-toggle[aria-pressed="true"]{
     background:var(--accent-soft);
@@ -180,12 +238,62 @@
     color:var(--accent-ink);
   }
   .chip-toggle[aria-pressed="true"] svg{ fill:var(--star); stroke:var(--star); }
+  .chip-toggle[hidden]{ display:none; }
 
+  /* ---------- account / sync ---------- */
+  .account-box{ display:inline-flex; align-items:center; gap:8px; }
+  .account-box[hidden]{ display:none; }
+  #signInBtn svg{ width:14px; height:14px; }
+  .account-info{
+    display:inline-flex;
+    align-items:center;
+    gap:9px;
+    font-size:12.5px;
+    color:var(--muted);
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:6px 8px 6px 14px;
+  }
+  .account-info[hidden]{ display:none; }
+  .account-avatar{
+    width:22px; height:22px;
+    border-radius:50%;
+    flex:0 0 auto;
+    background:var(--avatar-bg);
+    color:var(--avatar-ink);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    font-size:10px;
+  }
+  .account-name{ font-weight:600; color:var(--ink); max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .account-signout{
+    background:none;
+    border:none;
+    color:var(--accent-ink);
+    font-weight:700;
+    cursor:pointer;
+    font:inherit;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    padding:4px 6px;
+  }
+  .account-signout:hover{ text-decoration:underline; }
+  .sync-note{
+    margin:8px 0 0;
+    font-size:12px;
+    color:var(--accent-ink);
+  }
+
+  /* ---------- status row ---------- */
   .status-row{
     display:flex;
     justify-content:space-between;
     align-items:baseline;
-    margin:18px 0 12px;
+    margin:22px 0 14px;
     color:var(--muted);
     font-size:13px;
   }
@@ -193,60 +301,92 @@
     background:none;
     border:none;
     color:var(--accent-ink);
-    text-decoration:underline;
+    font-weight:700;
     cursor:pointer;
     font:inherit;
-    font-size:13px;
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:.04em;
     padding:0;
   }
+  .status-row .clear:hover{ text-decoration:underline; }
 
+  /* ---------- grid / cards ---------- */
   .grid{
     display:grid;
-    grid-template-columns:repeat(auto-fill, minmax(280px,1fr));
+    grid-template-columns:repeat(auto-fill, minmax(292px,1fr));
     gap:14px;
   }
   .card{
     background:var(--surface);
     border:1px solid var(--line);
-    border-radius:14px;
-    padding:16px 16px 14px;
-    box-shadow:var(--shadow);
+    padding:18px 18px 15px;
+    box-shadow:var(--shadow-md);
     display:flex;
     flex-direction:column;
-    gap:10px;
+    gap:12px;
     min-width:0;
+    transition:transform .18s var(--ease), box-shadow .18s var(--ease), border-color .18s var(--ease);
+  }
+  .card:hover{
+    transform:translateY(-2px);
+    box-shadow:var(--shadow-lg);
+    border-color:var(--accent-2);
   }
   .card-head{
     display:flex;
     justify-content:space-between;
-    gap:8px;
+    gap:10px;
     align-items:flex-start;
   }
-  .card-name{
-    font-family:"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  .card-id{
+    display:flex;
+    gap:11px;
+    min-width:0;
+  }
+  .avatar{
+    flex:0 0 auto;
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    background:var(--avatar-bg);
+    color:var(--avatar-ink);
+    display:flex;
+    align-items:center;
+    justify-content:center;
     font-weight:700;
-    font-size:16.5px;
-    line-height:1.25;
+    font-size:13.5px;
+    letter-spacing:.02em;
+  }
+  .card-name-wrap{ min-width:0; padding-top:1px; }
+  .card-name{
+    font-weight:700;
+    font-size:15.5px;
+    line-height:1.3;
     text-wrap:balance;
   }
+  .role{
+    font-size:13px;
+    color:var(--muted);
+    line-height:1.4;
+    margin-top:1px;
+  }
+  .role .position{ color:var(--ink); font-weight:600; }
   .star-btn{
     flex:0 0 auto;
     background:none;
     border:none;
     cursor:pointer;
-    padding:2px;
+    padding:3px;
     line-height:0;
     color:var(--star-off);
+    transition:color .15s var(--ease), transform .15s var(--ease);
+    border-radius:6px;
   }
+  .star-btn:hover{ color:var(--star); }
+  .star-btn:active{ transform:scale(.88); }
   .star-btn[aria-pressed="true"]{ color:var(--star); }
   .star-btn svg{ width:20px; height:20px; }
-
-  .role{
-    font-size:13.5px;
-    color:var(--muted);
-    line-height:1.4;
-  }
-  .role b{ color:var(--ink); font-weight:600; }
 
   .tag-row{
     display:flex;
@@ -254,10 +394,11 @@
     gap:6px;
   }
   .pill{
-    font-size:11.5px;
-    font-weight:600;
-    letter-spacing:.02em;
-    padding:3px 9px;
+    font-size:10.5px;
+    font-weight:700;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    padding:4px 10px;
     border-radius:20px;
     background:var(--surface-2);
     color:var(--ink);
@@ -269,89 +410,205 @@
     border-color:transparent;
   }
   .pill.year{
-    font-family:"Inter", monospace;
     font-variant-numeric:tabular-nums;
   }
-  .pill.non-ebsa{
-    color:var(--muted);
-  }
+  .pill.non-ebsa{ color:var(--muted); }
 
   .card-actions{
     display:flex;
-    gap:14px;
+    gap:8px;
     margin-top:auto;
-    padding-top:4px;
+    padding-top:12px;
     border-top:1px solid var(--line);
   }
   .card-actions a{
     display:inline-flex;
     align-items:center;
-    gap:5px;
-    font-size:12.5px;
-    font-weight:600;
+    gap:6px;
+    font-size:11.5px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.03em;
     color:var(--ink);
     text-decoration:none;
-    padding-top:9px;
+    background:var(--surface-2);
+    border:1px solid transparent;
+    border-radius:var(--radius-sm);
+    padding:7px 11px;
+    transition:background .15s var(--ease), color .15s var(--ease), border-color .15s var(--ease);
   }
-  .card-actions a svg{ width:14px; height:14px; color:var(--muted); }
-  .card-actions a:hover{ color:var(--accent-ink); }
-  .card-actions a:hover svg{ color:var(--accent); }
+  .card-actions a svg{ width:13px; height:13px; }
+  .card-actions a:hover{ color:var(--accent-ink); background:var(--accent-soft); border-color:var(--accent-2); }
   .card-actions .none{
     font-size:12.5px;
-    color:var(--muted);
-    padding-top:9px;
+    color:var(--muted-2);
+    padding:7px 0;
   }
 
-  .empty{
+  /* ---------- outreach log ---------- */
+  .outreach-panel{
+    margin-top:2px;
+    padding:12px;
+    background:var(--surface-2);
+    border:1px dashed var(--outreach-border);
+    border-radius:10px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .outreach-panel[hidden]{ display:none; }
+  .outreach-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+  }
+  .outreach-label{
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.07em;
+    text-transform:uppercase;
+    color:var(--accent-ink);
+  }
+  .outreach-status{
+    appearance:none;
+    -webkit-appearance:none;
+    font-family:inherit;
+    font-size:11px;
+    font-weight:600;
+    color:var(--ink);
+    background-color:var(--surface);
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23666666' stroke-width='1.6'><path d='M6 8l4 4 4-4'/></svg>");
+    background-repeat:no-repeat;
+    background-position:right 6px center;
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:4px 20px 4px 8px;
+    cursor:pointer;
+  }
+  .outreach-log-list{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .outreach-entry{
+    font-size:12px;
+    color:var(--ink);
+    line-height:1.4;
+  }
+  .outreach-entry b{ color:var(--accent-ink); font-weight:700; }
+  .outreach-add-row{
+    display:flex;
+    gap:6px;
+  }
+  .outreach-input{
+    flex:1 1 auto;
+    min-width:0;
+    font-family:inherit;
+    font-size:12px;
+    color:var(--ink);
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:6px 9px;
+  }
+  .outreach-add{
+    flex:0 0 auto;
+    font-family:inherit;
+    font-size:11px;
+    font-weight:700;
+    color:#ffffff;
+    background:var(--accent);
+    border:none;
+    border-radius:6px;
+    padding:6px 12px;
+    cursor:pointer;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    transition:background .15s var(--ease);
+  }
+  .outreach-add:hover{ background:var(--accent-ink); }
+
+  /* ---------- empty / loading / error ---------- */
+  .state-panel{
     text-align:center;
-    padding:64px 20px;
+    padding:72px 20px;
     color:var(--muted);
   }
-  .updated-note{
-    margin:0 0 14px;
-    padding:9px 12px;
-    background:var(--accent-soft);
-    color:var(--accent-ink);
-    border-radius:8px;
-    font-size:12.5px;
+  .state-icon{
+    width:44px; height:44px;
+    margin:0 auto 16px;
+    color:var(--muted-2);
   }
-  .empty h2{
-    font-family:"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  .state-panel h2{
     font-weight:700;
     color:var(--ink);
-    font-size:19px;
+    font-size:18px;
     margin:0 0 6px;
+  }
+  .state-panel p{ margin:0 auto; max-width:40ch; font-size:14px; line-height:1.5; }
+  .state-panel .chip-toggle{ margin:18px auto 0; }
+  .spinner{
+    width:28px; height:28px;
+    margin:0 auto 16px;
+    border-radius:50%;
+    border:3px solid var(--line);
+    border-top-color:var(--accent);
+    animation:spin .8s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  .updated-note{
+    margin:0 0 14px;
+    padding:10px 13px;
+    background:var(--accent-soft);
+    color:var(--accent-ink);
+    border-radius:var(--radius-sm);
+    font-size:12.5px;
+    font-weight:500;
   }
 
   footer{
-    margin-top:36px;
-    padding-top:16px;
+    margin-top:44px;
+    padding-top:20px;
     border-top:1px solid var(--line);
-    color:var(--muted);
+    color:var(--muted-2);
     font-size:12.5px;
-    line-height:1.6;
+    line-height:1.7;
   }
 
-  @media (max-width:480px){
+  @media (max-width:520px){
+    .wrap{ padding-inline:16px; }
+    .top-inner{ padding:22px 16px 16px; }
     .controls{ gap:8px; }
     .grid{ grid-template-columns:1fr; }
+    .header-decor .d2, .header-decor .d4, .header-decor .d5{ display:none; }
+    .header-decor .d1{ width:110px; height:110px; top:-40px; right:-10px; }
+    .header-decor .d3{ width:44px; height:44px; top:110px; right:20px; }
   }
 </style>
+</head>
+<body>
 
-<header class="top">
+<div class="accent-bar" aria-hidden="true"></div>
+
+<header class="top" id="topHeader">
+  <div class="header-decor" aria-hidden="true">
+    <span class="d1"></span><span class="d2"></span><span class="d3"></span><span class="d4"></span><span class="d5"></span>
+  </div>
   <div class="top-inner">
-    <div class="brand">
+    <div class="brand-row">
       <svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true">
-        <rect x="0.5" y="0.5" width="31" height="31" rx="4" fill="none" stroke="var(--line)"/>
-        <rect x="1" y="1" width="14.5" height="14.5" fill="#ffffff"/>
-        <rect x="16.5" y="1" width="14.5" height="14.5" fill="#52cceb"/>
-        <rect x="1" y="16.5" width="14.5" height="14.5" fill="#7ecfea"/>
-        <rect x="16.5" y="16.5" width="14.5" height="14.5" fill="#0099cc"/>
+        <rect x="0" y="0" width="14.5" height="14.5" rx="2" fill="#ffffff" stroke="#e3eef3" stroke-width="1"/>
+        <rect x="17.5" y="0" width="14.5" height="14.5" rx="2" fill="#52cceb"/>
+        <rect x="0" y="17.5" width="14.5" height="14.5" rx="2" fill="#7ecfea"/>
+        <rect x="17.5" y="17.5" width="14.5" height="14.5" rx="2" fill="#0099cc"/>
       </svg>
-      <h1>EBSA Alumni Network</h1>
-      <span class="count" id="liveCount"></span>
+      <div class="brand-text">
+        <h1>EBSA Alumni Network</h1>
+      </div>
     </div>
-    <p class="tagline">Search and filter UC Davis EBSA alumni by industry, company, or grad year — star anyone you're planning to reach out to, just for you.</p>
+    <p class="tagline"><b>Search and filter UC Davis EBSA alumni by industry, company, or graduating year!</b><br><b>STAR anyone you're planning to reach out to in the future!</b></p>
     <div class="controls" id="mainControls">
       <div class="search-box">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
@@ -363,7 +620,19 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.2 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.2 5.9-.8z"/></svg>
         My watchlist
       </button>
+      <div class="account-box" id="accountBox" hidden>
+        <button type="button" class="chip-toggle" id="signInBtn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12s3.36-7.27 7.19-7.27c3.08 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.19 2C6.42 2 2.03 6.8 2.03 12s4.39 10 10.16 10c5.05 0 9.81-3.64 9.81-10 0-.51-.09-1.09-.09-1.09z"/></svg>
+          Sign in to sync
+        </button>
+        <div class="account-info" id="accountInfo" hidden>
+          <span class="account-avatar" id="accountAvatar" aria-hidden="true"></span>
+          <span class="account-name" id="accountName"></span>
+          <button type="button" class="account-signout" id="signOutBtn">Sign out</button>
+        </div>
+      </div>
     </div>
+    <p class="sync-note" id="syncNote" hidden></p>
   </div>
 </header>
 
@@ -375,12 +644,14 @@
 
   <p class="updated-note" id="updatedNote" hidden></p>
 
-  <div class="empty" id="loadingState">
+  <div class="state-panel" id="loadingState">
+    <div class="spinner" aria-hidden="true"></div>
     <h2>Loading alumni…</h2>
     <p>Pulling the latest from the EBSA alumni sheet.</p>
   </div>
 
-  <div class="empty" id="errorState" hidden>
+  <div class="state-panel" id="errorState" hidden>
+    <svg class="state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
     <h2>Couldn't load the alumni directory</h2>
     <p id="errorDetail"></p>
     <button type="button" class="chip-toggle" id="retryBtn">Try again</button>
@@ -388,14 +659,14 @@
 
   <div class="grid" id="grid"></div>
 
-  <div class="empty" id="emptyState" hidden>
+  <div class="state-panel" id="emptyState" hidden>
+    <svg class="state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
     <h2>No alumni match those filters</h2>
     <p>Try clearing a filter or searching a different term.</p>
   </div>
 
   <footer>
-    <p>Data pulled from EBSA's alumni database. Job titles and companies can be out of date — check LinkedIn for someone's current role before reaching out, and keep outreach professional. Spot a mistake or missing alum? Let your Director of External Affairs know.</p>
-    <p>Watchlist stars are saved only in your own browser — no one else can see them.</p>
+    <p>Job titles and companies can be out of date. Check LinkedIn for their current role before reaching out, and keep outreach professional.<br>Spot a mistake or missing alumni? Let the Board of Directors know!</p>
   </footer>
 </div>
 
@@ -404,6 +675,7 @@
   var CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSXpjjft_12Kv31qbQONDRDr_SDbsKf9bBejojy3-EDOyzd5uCZ8XiPSrmtUrFq3G__FVJvKGa2CWyA/pub?gid=0&single=true&output=csv";
   var CACHE_KEY = "ebsa-alumni-cache-v1";
   var WL_KEY = "ebsa-alumni-watchlist-v1";
+  var OUTREACH_KEY = "ebsa-alumni-outreach-v1";
 
   function loadWatchlist(){
     try{
@@ -413,13 +685,151 @@
   }
   function saveWatchlist(wl){
     try{ localStorage.setItem(WL_KEY, JSON.stringify(wl)); }catch(e){}
+    queueCloudSync();
   }
   var watchlist = loadWatchlist();
+
+  function loadOutreach(){
+    try{
+      var raw = localStorage.getItem(OUTREACH_KEY);
+      return raw ? JSON.parse(raw) : {};
+    }catch(e){ return {}; }
+  }
+  function saveOutreach(o){
+    try{ localStorage.setItem(OUTREACH_KEY, JSON.stringify(o)); }catch(e){}
+    queueCloudSync();
+  }
+  var outreach = loadOutreach();
+  function ensureOutreach(id){
+    if (!outreach[id]) outreach[id] = { status: "not_started", logs: [] };
+    return outreach[id];
+  }
+  var STATUS_OPTIONS = [
+    ["not_started","Not started"],
+    ["message_sent","Message sent"],
+    ["chat_scheduled","Coffee chat scheduled"],
+    ["chat_done","Coffee chat done"],
+    ["thank_you_sent","Thank-you sent"],
+    ["referral","Got referral"],
+    ["no_response","No response"]
+  ];
+
+  // ---------- optional "sign in to sync" (Google + Firestore) ----------
+  // Paste your own Firebase web-app config below (Firebase console → Project settings →
+  // your app → "SDK setup and configuration" → Config). These values are meant to be
+  // public in client code — Firestore security rules are what keep each person's data
+  // private, not secrecy of this object. Until you paste real values here, the site
+  // just keeps working exactly as before (browser-only storage, no sign-in button shown).
+  var FIREBASE_CONFIG = {
+    apiKey: "AIzaSyA0jRAq3y1rxAnsssjo7rDLdoM4OVLU-EU",
+    authDomain: "ebsa-alumni-directory.firebaseapp.com",
+    projectId: "ebsa-alumni-directory",
+    storageBucket: "ebsa-alumni-directory.firebasestorage.app",
+    messagingSenderId: "156808555716",
+    appId: "1:156808555716:web:baaec06ff0ea55b4456d91"
+  };
+
+  var FIREBASE_ENABLED = false;
+  try{
+    if (typeof firebase !== "undefined" && FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey.indexOf("YOUR_") !== 0){
+      firebase.initializeApp(FIREBASE_CONFIG);
+      FIREBASE_ENABLED = true;
+    }
+  }catch(e){ FIREBASE_ENABLED = false; }
+
+  var currentUser = null;
+  var suppressCloudSync = false;
+  var cloudSyncTimer = null;
+
+  function queueCloudSync(){
+    if (!FIREBASE_ENABLED || !currentUser || suppressCloudSync) return;
+    clearTimeout(cloudSyncTimer);
+    cloudSyncTimer = setTimeout(pushToCloud, 600);
+  }
+
+  function pushToCloud(){
+    if (!FIREBASE_ENABLED || !currentUser) return;
+    firebase.firestore().collection("users").doc(currentUser.uid).set({
+      watchlist: watchlist,
+      outreach: outreach,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true }).catch(function(err){
+      console.warn("Couldn't sync to the cloud:", err);
+    });
+  }
+
+  function pullFromCloud(uid){
+    var syncNote = document.getElementById("syncNote");
+    firebase.firestore().collection("users").doc(uid).get().then(function(doc){
+      if (doc.exists){
+        var data = doc.data() || {};
+        suppressCloudSync = true;
+        watchlist = data.watchlist || {};
+        outreach = data.outreach || {};
+        saveWatchlist(watchlist);
+        saveOutreach(outreach);
+        suppressCloudSync = false;
+        if (typeof render === "function" && DATA.length) render();
+        if (syncNote){ syncNote.hidden = false; syncNote.textContent = "Synced — your watchlist and outreach notes just loaded from your account."; }
+      } else {
+        // First time signing in on any device — upload whatever is already in this browser.
+        pushToCloud();
+        if (syncNote){ syncNote.hidden = false; syncNote.textContent = "Synced — your watchlist and outreach notes will now follow your account."; }
+      }
+    }).catch(function(err){
+      console.warn("Couldn't load your synced data:", err);
+    });
+  }
+
+  function wireAccountUI(){
+    if (!FIREBASE_ENABLED) return;
+    var accountBox = document.getElementById("accountBox");
+    var signInBtn = document.getElementById("signInBtn");
+    var accountInfo = document.getElementById("accountInfo");
+    var accountAvatar = document.getElementById("accountAvatar");
+    var accountName = document.getElementById("accountName");
+    var signOutBtn = document.getElementById("signOutBtn");
+    var syncNote = document.getElementById("syncNote");
+
+    accountBox.hidden = false;
+
+    signInBtn.addEventListener("click", function(){
+      var provider = new firebase.auth.GoogleAuthProvider();
+      firebase.auth().signInWithPopup(provider).catch(function(err){
+        console.warn("Sign-in failed:", err);
+      });
+    });
+    signOutBtn.addEventListener("click", function(){
+      firebase.auth().signOut();
+    });
+
+    firebase.auth().onAuthStateChanged(function(user){
+      currentUser = user;
+      if (user){
+        signInBtn.hidden = true;
+        accountInfo.hidden = false;
+        accountAvatar.textContent = initials(user.displayName || user.email || "?");
+        accountName.textContent = user.displayName || user.email;
+        pullFromCloud(user.uid);
+      } else {
+        signInBtn.hidden = false;
+        accountInfo.hidden = true;
+        if (syncNote){ syncNote.hidden = true; }
+      }
+    });
+  }
 
   function esc(s){
     return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
       return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];
     });
+  }
+
+  function initials(name){
+    var parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return "?";
+    if (parts.length === 1) return parts[0].slice(0,2).toUpperCase();
+    return (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
   }
 
   // ---------- CSV parsing (handles quoted fields, embedded commas/quotes) ----------
@@ -529,7 +939,6 @@
   var loadingState = document.getElementById("loadingState");
   var errorState = document.getElementById("errorState");
   var errorDetail = document.getElementById("errorDetail");
-  var liveCount = document.getElementById("liveCount");
   var updatedNote = document.getElementById("updatedNote");
   var watchlistOnly = false;
 
@@ -539,11 +948,36 @@
     return '<svg viewBox="0 0 24 24" fill="'+(filled?"currentColor":"none")+'" stroke="currentColor" stroke-width="1.8"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.2 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.2 5.9-.8z"/></svg>';
   }
 
+  function outreachLogListHtml(logs){
+    if (!logs.length) return "";
+    return '<div class="outreach-log-list">' + logs.map(function(entry){
+      return '<div class="outreach-entry"><b>'+esc(entry.date)+'</b> — '+esc(entry.text)+'</div>';
+    }).join("") + '</div>';
+  }
+
+  function outreachPanelHtml(p){
+    var rec = ensureOutreach(p._id);
+    var statusOpts = STATUS_OPTIONS.map(function(opt){
+      return '<option value="'+opt[0]+'"'+(rec.status===opt[0]?' selected':'')+'>'+opt[1]+'</option>';
+    }).join("");
+    return '<div class="outreach-panel" data-outreach-panel hidden>' +
+      '<div class="outreach-head">' +
+        '<span class="outreach-label">Outreach log</span>' +
+        '<select class="outreach-status" aria-label="Outreach status" data-id="'+esc(p._id)+'">'+statusOpts+'</select>' +
+      '</div>' +
+      outreachLogListHtml(rec.logs) +
+      '<div class="outreach-add-row">' +
+        '<input type="text" class="outreach-input" placeholder="Add a note…" aria-label="Add outreach note" data-id="'+esc(p._id)+'">' +
+        '<button type="button" class="outreach-add" data-id="'+esc(p._id)+'">Add</button>' +
+      '</div>' +
+    '</div>';
+  }
+
   function renderCard(p){
-    var roleParts = [];
-    if (p.position && p.company) roleParts.push('<b>'+esc(p.position)+'</b> · '+esc(p.company));
-    else if (p.position) roleParts.push('<b>'+esc(p.position)+'</b>');
-    else if (p.company) roleParts.push(esc(p.company));
+    var roleHtml = "";
+    if (p.position && p.company) roleHtml = '<span class="position">'+esc(p.position)+'</span> · '+esc(p.company);
+    else if (p.position) roleHtml = '<span class="position">'+esc(p.position)+'</span>';
+    else if (p.company) roleHtml = esc(p.company);
 
     var pills = '';
     if (p.industry !== "Unspecified") pills += '<span class="pill industry">'+esc(p.industry)+'</span>';
@@ -561,12 +995,21 @@
     el.className = "card";
     el.innerHTML =
       '<div class="card-head">' +
-        '<div class="card-name">'+esc(p.name)+'</div>' +
+        '<div class="card-id">' +
+          '<div class="avatar" aria-hidden="true">'+esc(initials(p.name))+'</div>' +
+          '<div class="card-name-wrap">' +
+            '<div class="card-name">'+esc(p.name)+'</div>' +
+            (roleHtml ? '<div class="role">'+roleHtml+'</div>' : '') +
+          '</div>' +
+        '</div>' +
         '<button type="button" class="star-btn" aria-pressed="'+pressed+'" aria-label="Add to watchlist" data-id="'+esc(p._id)+'">'+starSVG(pressed)+'</button>' +
       '</div>' +
-      (roleParts.length ? '<div class="role">'+roleParts.join("")+'</div>' : '') +
       (pills ? '<div class="tag-row">'+pills+'</div>' : '') +
-      '<div class="card-actions">'+actions+'</div>';
+      '<div class="card-actions">'+actions+'</div>' +
+      outreachPanelHtml(p);
+
+    var outreachPanel = el.querySelector("[data-outreach-panel]");
+    outreachPanel.hidden = !pressed;
 
     el.querySelector(".star-btn").addEventListener("click", function(){
       var id = this.getAttribute("data-id");
@@ -576,7 +1019,39 @@
       var isOn = !!watchlist[id];
       this.setAttribute("aria-pressed", isOn);
       this.innerHTML = starSVG(isOn);
+      outreachPanel.hidden = !isOn;
       if (watchlistOnly && !isOn) render();
+    });
+
+    el.querySelector(".outreach-status").addEventListener("change", function(){
+      var id = this.getAttribute("data-id");
+      var rec = ensureOutreach(id);
+      rec.status = this.value;
+      saveOutreach(outreach);
+    });
+
+    var outreachInput = el.querySelector(".outreach-input");
+    var outreachAddBtn = el.querySelector(".outreach-add");
+    function addOutreachEntry(){
+      var id = outreachAddBtn.getAttribute("data-id");
+      var text = outreachInput.value.trim();
+      if (!text) return;
+      var rec = ensureOutreach(id);
+      var dateStr = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      rec.logs.push({ date: dateStr, text: text });
+      saveOutreach(outreach);
+      outreachInput.value = "";
+      var listEl = outreachPanel.querySelector(".outreach-log-list");
+      var entryHtml = '<div class="outreach-entry"><b>'+esc(dateStr)+'</b> — '+esc(text)+'</div>';
+      if (listEl){
+        listEl.insertAdjacentHTML("beforeend", entryHtml);
+      } else {
+        outreachPanel.querySelector(".outreach-head").insertAdjacentHTML("afterend", '<div class="outreach-log-list">'+entryHtml+'</div>');
+      }
+    }
+    outreachAddBtn.addEventListener("click", addOutreachEntry);
+    outreachInput.addEventListener("keydown", function(e){
+      if (e.key === "Enter"){ e.preventDefault(); addOutreachEntry(); }
     });
 
     return el;
@@ -624,6 +1099,8 @@
       .sort();
     industries.push("Unspecified");
 
+    var yearNums = DATA.map(function(p){ return p.gradYear ? parseInt(p.gradYear,10) : NaN; })
+      .filter(function(y){ return !isNaN(y); });
     var years = Array.from(new Set(DATA.map(function(p){ return p.gradYear; })))
       .filter(Boolean)
       .sort(function(a,b){ return b - a; });
@@ -632,8 +1109,6 @@
       industries.map(function(t){ return '<option value="'+esc(t)+'">'+esc(t)+'</option>'; }).join("");
     yearSelect.innerHTML = '<option value="">All grad years</option>' +
       years.map(function(y){ return '<option value="'+esc(y)+'">Class of '+esc(y)+'</option>'; }).join("");
-
-    liveCount.textContent = DATA.length + " alumni";
 
     if (opts.stale){
       updatedNote.hidden = false;
@@ -703,6 +1178,14 @@
 
   document.getElementById("retryBtn").addEventListener("click", fetchAndInit);
 
+  var topHeader = document.getElementById("topHeader");
+  window.addEventListener("scroll", function(){
+    topHeader.classList.toggle("is-scrolled", window.scrollY > 4);
+  }, { passive: true });
+
+  wireAccountUI();
   fetchAndInit();
 })();
 </script>
+</body>
+</html>
