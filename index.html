@@ -1,0 +1,708 @@
+<title>EBSA Alumni Network</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#171a1c;
+    --paper:#f4fafd;
+    --surface:#ffffff;
+    --surface-2:#eaf6fb;
+    --line:#d6ecf4;
+    --muted:#666666;
+    --accent:#0099cc;
+    --accent-ink:#00658a;
+    --accent-soft:#dff3fa;
+    --star:#0099cc;
+    --star-off:#b9dfec;
+    --focus:#0099cc;
+    --shadow: 0 1px 2px rgba(0,60,80,.05), 0 6px 16px -8px rgba(0,60,80,.16);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ink:#eef6fa;
+      --paper:#0c1418;
+      --surface:#121d23;
+      --surface-2:#152631;
+      --line:#20404d;
+      --muted:#93a6ad;
+      --accent:#52cceb;
+      --accent-ink:#bdeaf9;
+      --accent-soft:#123241;
+      --star:#52cceb;
+      --star-off:#3a4d55;
+      --focus:#52cceb;
+      --shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 20px -8px rgba(0,0,0,.55);
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#eef6fa;
+    --paper:#0c1418;
+    --surface:#121d23;
+    --surface-2:#152631;
+    --line:#20404d;
+    --muted:#93a6ad;
+    --accent:#52cceb;
+    --accent-ink:#bdeaf9;
+    --accent-soft:#123241;
+    --star:#52cceb;
+    --star-off:#3a4d55;
+    --focus:#52cceb;
+    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 8px 20px -8px rgba(0,0,0,.55);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    padding-inline:0;
+  }
+  .wrap{
+    max-width:1080px;
+    margin:0 auto;
+    padding-inline:20px;
+    padding-block:0 48px;
+  }
+  header.top{
+    position:sticky;
+    top:env(safe-area-inset-top,0px);
+    z-index:20;
+    background:var(--paper);
+    border-bottom:1px solid var(--line);
+    padding-block:18px 14px;
+    padding-inline:20px;
+  }
+  .top-inner{
+    max-width:1080px;
+    margin:0 auto;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .logo-mark{
+    width:26px;
+    height:26px;
+    flex:0 0 auto;
+    border-radius:4px;
+    overflow:hidden;
+  }
+  h1{
+    font-family:"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-weight:800;
+    font-size:clamp(22px,4vw,29px);
+    margin:0;
+    letter-spacing:-.01em;
+    text-wrap:balance;
+  }
+  .brand .count{
+    font-family:"Inter", monospace;
+    font-variant-numeric:tabular-nums;
+    color:var(--muted);
+    font-size:14px;
+  }
+  .tagline{
+    margin:4px 0 16px;
+    color:var(--muted);
+    font-size:14.5px;
+    max-width:60ch;
+  }
+  .controls{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:center;
+  }
+  .search-box{
+    position:relative;
+    flex:1 1 240px;
+    min-width:180px;
+  }
+  .search-box svg{
+    position:absolute;
+    left:11px;
+    top:50%;
+    transform:translateY(-50%);
+    width:16px;
+    height:16px;
+    color:var(--muted);
+    pointer-events:none;
+  }
+  input[type="search"], select{
+    font-family:inherit;
+    font-size:14.5px;
+    color:var(--ink);
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:9px;
+    padding:9px 12px;
+  }
+  input[type="search"]{
+    width:100%;
+    padding-left:34px;
+  }
+  input[type="search"]:focus, select:focus, button:focus-visible{
+    outline:2px solid var(--focus);
+    outline-offset:1px;
+  }
+  select{
+    appearance:none;
+    -webkit-appearance:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23786e59' stroke-width='1.6'><path d='M6 8l4 4 4-4'/></svg>");
+    background-repeat:no-repeat;
+    background-position:right 9px center;
+    padding-right:28px;
+    cursor:pointer;
+  }
+  .chip-toggle{
+    font-family:inherit;
+    font-size:13.5px;
+    font-weight:500;
+    color:var(--ink);
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:8px 14px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    white-space:nowrap;
+  }
+  .chip-toggle svg{width:14px;height:14px;}
+  .chip-toggle[aria-pressed="true"]{
+    background:var(--accent-soft);
+    border-color:var(--accent);
+    color:var(--accent-ink);
+  }
+  .chip-toggle[aria-pressed="true"] svg{ fill:var(--star); stroke:var(--star); }
+
+  .status-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin:18px 0 12px;
+    color:var(--muted);
+    font-size:13px;
+  }
+  .status-row .clear{
+    background:none;
+    border:none;
+    color:var(--accent-ink);
+    text-decoration:underline;
+    cursor:pointer;
+    font:inherit;
+    font-size:13px;
+    padding:0;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(280px,1fr));
+    gap:14px;
+  }
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:16px 16px 14px;
+    box-shadow:var(--shadow);
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    min-width:0;
+  }
+  .card-head{
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    align-items:flex-start;
+  }
+  .card-name{
+    font-family:"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-weight:700;
+    font-size:16.5px;
+    line-height:1.25;
+    text-wrap:balance;
+  }
+  .star-btn{
+    flex:0 0 auto;
+    background:none;
+    border:none;
+    cursor:pointer;
+    padding:2px;
+    line-height:0;
+    color:var(--star-off);
+  }
+  .star-btn[aria-pressed="true"]{ color:var(--star); }
+  .star-btn svg{ width:20px; height:20px; }
+
+  .role{
+    font-size:13.5px;
+    color:var(--muted);
+    line-height:1.4;
+  }
+  .role b{ color:var(--ink); font-weight:600; }
+
+  .tag-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+  .pill{
+    font-size:11.5px;
+    font-weight:600;
+    letter-spacing:.02em;
+    padding:3px 9px;
+    border-radius:20px;
+    background:var(--surface-2);
+    color:var(--ink);
+    border:1px solid var(--line);
+  }
+  .pill.industry{
+    background:var(--accent-soft);
+    color:var(--accent-ink);
+    border-color:transparent;
+  }
+  .pill.year{
+    font-family:"Inter", monospace;
+    font-variant-numeric:tabular-nums;
+  }
+  .pill.non-ebsa{
+    color:var(--muted);
+  }
+
+  .card-actions{
+    display:flex;
+    gap:14px;
+    margin-top:auto;
+    padding-top:4px;
+    border-top:1px solid var(--line);
+  }
+  .card-actions a{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink);
+    text-decoration:none;
+    padding-top:9px;
+  }
+  .card-actions a svg{ width:14px; height:14px; color:var(--muted); }
+  .card-actions a:hover{ color:var(--accent-ink); }
+  .card-actions a:hover svg{ color:var(--accent); }
+  .card-actions .none{
+    font-size:12.5px;
+    color:var(--muted);
+    padding-top:9px;
+  }
+
+  .empty{
+    text-align:center;
+    padding:64px 20px;
+    color:var(--muted);
+  }
+  .updated-note{
+    margin:0 0 14px;
+    padding:9px 12px;
+    background:var(--accent-soft);
+    color:var(--accent-ink);
+    border-radius:8px;
+    font-size:12.5px;
+  }
+  .empty h2{
+    font-family:"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-weight:700;
+    color:var(--ink);
+    font-size:19px;
+    margin:0 0 6px;
+  }
+
+  footer{
+    margin-top:36px;
+    padding-top:16px;
+    border-top:1px solid var(--line);
+    color:var(--muted);
+    font-size:12.5px;
+    line-height:1.6;
+  }
+
+  @media (max-width:480px){
+    .controls{ gap:8px; }
+    .grid{ grid-template-columns:1fr; }
+  }
+</style>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <rect x="0.5" y="0.5" width="31" height="31" rx="4" fill="none" stroke="var(--line)"/>
+        <rect x="1" y="1" width="14.5" height="14.5" fill="#ffffff"/>
+        <rect x="16.5" y="1" width="14.5" height="14.5" fill="#52cceb"/>
+        <rect x="1" y="16.5" width="14.5" height="14.5" fill="#7ecfea"/>
+        <rect x="16.5" y="16.5" width="14.5" height="14.5" fill="#0099cc"/>
+      </svg>
+      <h1>EBSA Alumni Network</h1>
+      <span class="count" id="liveCount"></span>
+    </div>
+    <p class="tagline">Search and filter UC Davis EBSA alumni by industry, company, or grad year — star anyone you're planning to reach out to, just for you.</p>
+    <div class="controls" id="mainControls">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input type="search" id="searchInput" placeholder="Search name, company, position…" aria-label="Search alumni">
+      </div>
+      <select id="industryFilter" aria-label="Filter by industry"></select>
+      <select id="yearFilter" aria-label="Filter by grad year"></select>
+      <button type="button" class="chip-toggle" id="watchlistToggle" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.2 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.2 5.9-.8z"/></svg>
+        My watchlist
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="status-row">
+    <span id="statusText"></span>
+    <button type="button" class="clear" id="clearFilters">Clear filters</button>
+  </div>
+
+  <p class="updated-note" id="updatedNote" hidden></p>
+
+  <div class="empty" id="loadingState">
+    <h2>Loading alumni…</h2>
+    <p>Pulling the latest from the EBSA alumni sheet.</p>
+  </div>
+
+  <div class="empty" id="errorState" hidden>
+    <h2>Couldn't load the alumni directory</h2>
+    <p id="errorDetail"></p>
+    <button type="button" class="chip-toggle" id="retryBtn">Try again</button>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="empty" id="emptyState" hidden>
+    <h2>No alumni match those filters</h2>
+    <p>Try clearing a filter or searching a different term.</p>
+  </div>
+
+  <footer>
+    <p>Data pulled from EBSA's alumni database. Job titles and companies can be out of date — check LinkedIn for someone's current role before reaching out, and keep outreach professional. Spot a mistake or missing alum? Let your Director of External Affairs know.</p>
+    <p>Watchlist stars are saved only in your own browser — no one else can see them.</p>
+  </footer>
+</div>
+
+<script>
+(function(){
+  var CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSXpjjft_12Kv31qbQONDRDr_SDbsKf9bBejojy3-EDOyzd5uCZ8XiPSrmtUrFq3G__FVJvKGa2CWyA/pub?gid=0&single=true&output=csv";
+  var CACHE_KEY = "ebsa-alumni-cache-v1";
+  var WL_KEY = "ebsa-alumni-watchlist-v1";
+
+  function loadWatchlist(){
+    try{
+      var raw = localStorage.getItem(WL_KEY);
+      return raw ? JSON.parse(raw) : {};
+    }catch(e){ return {}; }
+  }
+  function saveWatchlist(wl){
+    try{ localStorage.setItem(WL_KEY, JSON.stringify(wl)); }catch(e){}
+  }
+  var watchlist = loadWatchlist();
+
+  function esc(s){
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];
+    });
+  }
+
+  // ---------- CSV parsing (handles quoted fields, embedded commas/quotes) ----------
+  function parseCSV(text){
+    var rows = [], row = [], field = "", inQuotes = false;
+    for (var i = 0; i < text.length; i++){
+      var c = text[i];
+      if (inQuotes){
+        if (c === '"'){
+          if (text[i+1] === '"'){ field += '"'; i++; }
+          else { inQuotes = false; }
+        } else {
+          field += c;
+        }
+      } else {
+        if (c === '"'){ inQuotes = true; }
+        else if (c === ","){ row.push(field); field = ""; }
+        else if (c === "\n"){ row.push(field); rows.push(row); row = []; field = ""; }
+        else if (c === "\r"){ /* skip */ }
+        else { field += c; }
+      }
+    }
+    if (field.length || row.length){ row.push(field); rows.push(row); }
+    return rows.filter(function(r){ return r.length > 1 || (r[0] && r[0].trim()); });
+  }
+
+  function clean(v){
+    v = (v == null ? "" : String(v)).trim();
+    if (/^n\/?a$/i.test(v)) return "";
+    return v;
+  }
+
+  // ---------- industry tag normalization ----------
+  var TAG_MAP = {
+    "consulting/project management":"Consulting","consulting":"Consulting","strategy & consulting":"Consulting",
+    "tech":"Tech","technology":"Tech","technology / b2b saas":"Tech","software":"Tech","software/logistics":"Tech","data security":"Tech","artificial intelligence":"Tech",
+    "finance":"Finance","tax":"Finance","insurance - actuarial":"Finance","accounting/finance":"Finance",
+    "accounting":"Accounting",
+    "marketing":"Marketing","advertising technology":"Marketing","sales and marketing":"Marketing",
+    "product management":"Product Management","project management":"Product Management",
+    "engineering":"Engineering","manufacturing":"Engineering","manufacturing (medical device)":"Engineering","contract manufacturing":"Engineering",
+    "data analytics":"Data & Analytics",
+    "entrepreneurship":"Entrepreneurship",
+    "real estate":"Real Estate",
+    "retail":"Retail",
+    "healthcare":"Healthcare","disability support services":"Healthcare",
+    "law":"Law",
+    "hr":"HR & Recruiting","recruitment":"HR & Recruiting",
+    "government":"Government & Nonprofit","non-profit":"Government & Nonprofit","higher education administration":"Government & Nonprofit","education":"Government & Nonprofit",
+    "management":"Operations & Management","operations":"Operations & Management",
+    "tech sales":"Sales",
+    "ui/ux design":"Design",
+    "sports":"Other","research":"Other","biochemistry, astronomy, it":"Other"
+  };
+  function tagFor(industryRaw){
+    if (!industryRaw) return "Unspecified";
+    var key = industryRaw.trim().toLowerCase();
+    return TAG_MAP[key] || "Other";
+  }
+
+  function rowsToPeople(rows){
+    if (!rows.length) return [];
+    var header = rows[0].map(function(h){ return h.trim().toLowerCase(); });
+    var idx = {
+      name: header.indexOf("name"),
+      email: header.indexOf("email"),
+      gradYear: header.indexOf("grad year"),
+      industry: header.indexOf("industry/field"),
+      company: header.indexOf("company"),
+      position: header.indexOf("position"),
+      linkedin: header.indexOf("linkedin"),
+      ebsa: header.indexOf("ebsa alumni")
+    };
+    var out = [];
+    for (var i = 1; i < rows.length; i++){
+      var r = rows[i];
+      var name = clean(r[idx.name]);
+      if (!name) continue;
+      var email = clean(r[idx.email]).split(",")[0].trim();
+      var linkedin = clean(r[idx.linkedin]);
+      if (linkedin && !/^https?:\/\//i.test(linkedin)) linkedin = "https://" + linkedin;
+      var industryRaw = clean(r[idx.industry]);
+      out.push({
+        name: name,
+        email: email,
+        gradYear: clean(r[idx.gradYear]),
+        industryRaw: industryRaw,
+        industry: tagFor(industryRaw),
+        company: clean(r[idx.company]),
+        position: clean(r[idx.position]),
+        linkedin: linkedin,
+        ebsaAlumni: clean(r[idx.ebsa]).toLowerCase() === "yes"
+      });
+    }
+    return out;
+  }
+
+  // ---------- app state / rendering ----------
+  var DATA = [];
+  var searchInput = document.getElementById("searchInput");
+  var industrySelect = document.getElementById("industryFilter");
+  var yearSelect = document.getElementById("yearFilter");
+  var watchlistToggle = document.getElementById("watchlistToggle");
+  var grid = document.getElementById("grid");
+  var statusText = document.getElementById("statusText");
+  var emptyState = document.getElementById("emptyState");
+  var loadingState = document.getElementById("loadingState");
+  var errorState = document.getElementById("errorState");
+  var errorDetail = document.getElementById("errorDetail");
+  var liveCount = document.getElementById("liveCount");
+  var updatedNote = document.getElementById("updatedNote");
+  var watchlistOnly = false;
+
+  function personId(p, i){ return (p.name + "|" + p.email + "|" + i).toLowerCase(); }
+
+  function starSVG(filled){
+    return '<svg viewBox="0 0 24 24" fill="'+(filled?"currentColor":"none")+'" stroke="currentColor" stroke-width="1.8"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.2 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.2 5.9-.8z"/></svg>';
+  }
+
+  function renderCard(p){
+    var roleParts = [];
+    if (p.position && p.company) roleParts.push('<b>'+esc(p.position)+'</b> · '+esc(p.company));
+    else if (p.position) roleParts.push('<b>'+esc(p.position)+'</b>');
+    else if (p.company) roleParts.push(esc(p.company));
+
+    var pills = '';
+    if (p.industry !== "Unspecified") pills += '<span class="pill industry">'+esc(p.industry)+'</span>';
+    if (p.gradYear) pills += '<span class="pill year">Class of '+esc(p.gradYear)+'</span>';
+    if (!p.ebsaAlumni) pills += '<span class="pill non-ebsa">Non-EBSA contact</span>';
+
+    var actions = '';
+    if (p.email) actions += '<a href="mailto:'+esc(p.email)+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>Email</a>';
+    if (p.linkedin) actions += '<a href="'+esc(p.linkedin)+'" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M8 11v5M8 8v.01M12 16v-3.5a1.5 1.5 0 013-0V16M12 11v5"/></svg>LinkedIn</a>';
+    if (!actions) actions = '<span class="none">No contact info on file</span>';
+
+    var pressed = !!watchlist[p._id];
+
+    var el = document.createElement("div");
+    el.className = "card";
+    el.innerHTML =
+      '<div class="card-head">' +
+        '<div class="card-name">'+esc(p.name)+'</div>' +
+        '<button type="button" class="star-btn" aria-pressed="'+pressed+'" aria-label="Add to watchlist" data-id="'+esc(p._id)+'">'+starSVG(pressed)+'</button>' +
+      '</div>' +
+      (roleParts.length ? '<div class="role">'+roleParts.join("")+'</div>' : '') +
+      (pills ? '<div class="tag-row">'+pills+'</div>' : '') +
+      '<div class="card-actions">'+actions+'</div>';
+
+    el.querySelector(".star-btn").addEventListener("click", function(){
+      var id = this.getAttribute("data-id");
+      if (watchlist[id]) delete watchlist[id];
+      else watchlist[id] = true;
+      saveWatchlist(watchlist);
+      var isOn = !!watchlist[id];
+      this.setAttribute("aria-pressed", isOn);
+      this.innerHTML = starSVG(isOn);
+      if (watchlistOnly && !isOn) render();
+    });
+
+    return el;
+  }
+
+  function render(){
+    var q = searchInput.value.trim().toLowerCase();
+    var ind = industrySelect.value;
+    var yr = yearSelect.value;
+
+    var results = DATA.filter(function(p){
+      if (watchlistOnly && !watchlist[p._id]) return false;
+      if (ind && p.industry !== ind) return false;
+      if (yr && p.gradYear !== yr) return false;
+      if (q){
+        var hay = (p.name+" "+p.company+" "+p.position+" "+p.email+" "+p.industryRaw).toLowerCase();
+        if (hay.indexOf(q) === -1) return false;
+      }
+      return true;
+    });
+
+    results.sort(function(a,b){
+      var ya = a.gradYear ? parseInt(a.gradYear,10) : -1;
+      var yb = b.gradYear ? parseInt(b.gradYear,10) : -1;
+      if (yb !== ya) return yb - ya;
+      return a.name.localeCompare(b.name);
+    });
+
+    grid.innerHTML = "";
+    var frag = document.createDocumentFragment();
+    results.forEach(function(p){ frag.appendChild(renderCard(p)); });
+    grid.appendChild(frag);
+
+    emptyState.hidden = results.length !== 0;
+    statusText.textContent = "Showing " + results.length + " of " + DATA.length + (watchlistOnly ? " (watchlist)" : "");
+  }
+
+  function initApp(people, opts){
+    opts = opts || {};
+    DATA = people;
+    DATA.forEach(function(p, i){ p._id = personId(p, i); });
+
+    var industries = Array.from(new Set(DATA.map(function(p){ return p.industry; })))
+      .filter(function(x){ return x !== "Unspecified"; })
+      .sort();
+    industries.push("Unspecified");
+
+    var years = Array.from(new Set(DATA.map(function(p){ return p.gradYear; })))
+      .filter(Boolean)
+      .sort(function(a,b){ return b - a; });
+
+    industrySelect.innerHTML = '<option value="">All industries</option>' +
+      industries.map(function(t){ return '<option value="'+esc(t)+'">'+esc(t)+'</option>'; }).join("");
+    yearSelect.innerHTML = '<option value="">All grad years</option>' +
+      years.map(function(y){ return '<option value="'+esc(y)+'">Class of '+esc(y)+'</option>'; }).join("");
+
+    liveCount.textContent = DATA.length + " alumni";
+
+    if (opts.stale){
+      updatedNote.hidden = false;
+      updatedNote.textContent = "Showing a saved copy from " + opts.fetchedAt + " — couldn't reach the live sheet just now.";
+    } else {
+      updatedNote.hidden = true;
+    }
+
+    searchInput.addEventListener("input", render);
+    industrySelect.addEventListener("change", render);
+    yearSelect.addEventListener("change", render);
+    watchlistToggle.addEventListener("click", function(){
+      watchlistOnly = !watchlistOnly;
+      this.setAttribute("aria-pressed", watchlistOnly);
+      render();
+    });
+    document.getElementById("clearFilters").addEventListener("click", function(){
+      searchInput.value = "";
+      industrySelect.value = "";
+      yearSelect.value = "";
+      watchlistOnly = false;
+      watchlistToggle.setAttribute("aria-pressed","false");
+      render();
+    });
+
+    loadingState.hidden = true;
+    document.getElementById("mainControls").hidden = false;
+    render();
+  }
+
+  function showError(message){
+    loadingState.hidden = true;
+    errorState.hidden = false;
+    errorDetail.textContent = message;
+  }
+
+  function fetchAndInit(){
+    loadingState.hidden = false;
+    errorState.hidden = true;
+    document.getElementById("mainControls").hidden = true;
+
+    fetch(CSV_URL, { cache: "no-store" })
+      .then(function(res){
+        if (!res.ok) throw new Error("Sheet returned HTTP " + res.status);
+        return res.text();
+      })
+      .then(function(text){
+        var people = rowsToPeople(parseCSV(text));
+        if (people.length < 50){
+          throw new Error("Only found " + people.length + " people — that's suspiciously low, so not trusting this load.");
+        }
+        try{
+          localStorage.setItem(CACHE_KEY, JSON.stringify({ data: people, fetchedAt: new Date().toLocaleString() }));
+        }catch(e){}
+        initApp(people, { stale: false });
+      })
+      .catch(function(err){
+        var cached = null;
+        try{ cached = JSON.parse(localStorage.getItem(CACHE_KEY) || "null"); }catch(e){}
+        if (cached && cached.data && cached.data.length){
+          initApp(cached.data, { stale: true, fetchedAt: cached.fetchedAt });
+        } else {
+          showError(err.message || "Couldn't load the alumni sheet.");
+        }
+      });
+  }
+
+  document.getElementById("retryBtn").addEventListener("click", fetchAndInit);
+
+  fetchAndInit();
+})();
+</script>
