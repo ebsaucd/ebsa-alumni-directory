@@ -766,6 +766,21 @@
   var currentUser = null;
   var suppressCloudSync = false;
   var cloudSyncTimer = null;
+  var SYNC_OWNER_KEY = "ebsa-alumni-sync-owner-v1";
+
+  // Tracks which signed-in account's data is currently cached in this browser's
+  // localStorage, so that switching to a *different* Google account on the same
+  // browser doesn't accidentally copy the previous account's watchlist/outreach
+  // notes up into the new account's cloud record.
+  function loadSyncOwner(){
+    try{ return localStorage.getItem(SYNC_OWNER_KEY) || null; }catch(e){ return null; }
+  }
+  function saveSyncOwner(uid){
+    try{
+      if (uid) localStorage.setItem(SYNC_OWNER_KEY, uid);
+      else localStorage.removeItem(SYNC_OWNER_KEY);
+    }catch(e){}
+  }
 
   function queueCloudSync(){
     if (!FIREBASE_ENABLED || !currentUser || suppressCloudSync) return;
@@ -779,13 +794,28 @@
       watchlist: watchlist,
       outreach: outreach,
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true }).catch(function(err){
+    }, { merge: true }).then(function(){
+      saveSyncOwner(currentUser.uid);
+    }).catch(function(err){
       console.warn("Couldn't sync to the cloud:", err);
     });
   }
 
   function pullFromCloud(uid){
     var syncNote = document.getElementById("syncNote");
+    var owner = loadSyncOwner();
+    if (owner && owner !== uid){
+      // What's cached locally belongs to a different account that was signed in
+      // on this same browser — don't let it leak into this account. Start clean
+      // and let the cloud (or a fresh local start) take over.
+      suppressCloudSync = true;
+      watchlist = {};
+      outreach = {};
+      saveWatchlist(watchlist);
+      saveOutreach(outreach);
+      suppressCloudSync = false;
+      if (typeof render === "function" && DATA.length) render();
+    }
     firebase.firestore().collection("users").doc(uid).get().then(function(doc){
       if (doc.exists){
         var data = doc.data() || {};
@@ -795,10 +825,14 @@
         saveWatchlist(watchlist);
         saveOutreach(outreach);
         suppressCloudSync = false;
+        saveSyncOwner(uid);
         if (typeof render === "function" && DATA.length) render();
         if (syncNote){ syncNote.hidden = false; syncNote.textContent = "Synced — your watchlist and outreach notes just loaded from your account."; }
       } else {
-        // First time signing in on any device — upload whatever is already in this browser.
+        // No cloud record yet for this account. Only migrate up what's in this
+        // browser if it genuinely already belonged to this same account (or to
+        // no account at all yet) — never someone else's leftover local data.
+        saveSyncOwner(uid);
         pushToCloud();
         if (syncNote){ syncNote.hidden = false; syncNote.textContent = "Synced — your watchlist and outreach notes will now follow your account."; }
       }
@@ -826,6 +860,10 @@
       });
     });
     signOutBtn.addEventListener("click", function(){
+      // Flush any change still waiting on the debounce timer so a note or star
+      // clicked right before signing out doesn't get lost.
+      clearTimeout(cloudSyncTimer);
+      pushToCloud();
       firebase.auth().signOut();
     });
 
