@@ -238,96 +238,6 @@
   .chip-toggle[aria-pressed="true"] svg{ fill:var(--star); stroke:var(--star); }
   .chip-toggle[hidden]{ display:none; }
 
-  /* ---------- smart (natural-language) search ---------- */
-  .smart-search-row{
-    display:flex;
-    flex-wrap:wrap;
-    gap:10px;
-    align-items:center;
-    margin-top:16px;
-  }
-  .smart-search-box{
-    position:relative;
-    flex:1 1 320px;
-    min-width:200px;
-  }
-  .smart-search-box svg{
-    position:absolute;
-    left:13px;
-    top:50%;
-    transform:translateY(-50%);
-    width:16px;
-    height:16px;
-    color:var(--accent-ink);
-    pointer-events:none;
-  }
-  #smartSearchInput{
-    font-family:inherit;
-    font-size:14.5px;
-    color:var(--ink);
-    background:var(--surface);
-    border:1px solid var(--accent);
-    border-radius:var(--radius-sm);
-    padding:10px 13px 10px 37px;
-    width:100%;
-    transition:border-color .15s var(--ease), box-shadow .15s var(--ease);
-  }
-  #smartSearchInput:hover{ border-color:var(--accent-ink); }
-  #smartSearchInput:disabled{ opacity:.6; cursor:wait; }
-  #smartSearchBtn{ flex:0 0 auto; }
-  #smartSearchBtn:disabled{ opacity:.6; cursor:wait; }
-
-  .smart-chip-row{
-    display:flex;
-    flex-wrap:wrap;
-    align-items:center;
-    gap:8px;
-    margin:0 0 14px;
-  }
-  .smart-chip-row[hidden]{ display:none; }
-  .smart-chip-label{
-    font-size:12px;
-    font-weight:700;
-    text-transform:uppercase;
-    letter-spacing:.04em;
-    color:var(--muted);
-  }
-  .smart-chip{
-    display:inline-flex;
-    align-items:center;
-    gap:6px;
-    font-size:13px;
-    font-weight:600;
-    color:var(--accent-ink);
-    background:var(--accent-soft);
-    border:1px solid var(--accent);
-    border-radius:20px;
-    padding:5px 6px 5px 12px;
-  }
-  .smart-chip-x{
-    font-family:inherit;
-    line-height:1;
-    background:none;
-    border:none;
-    color:var(--accent-ink);
-    cursor:pointer;
-    font-size:15px;
-    padding:2px 4px;
-  }
-  .smart-chip-x:hover{ color:var(--ink); }
-  .smart-chip-clear{
-    font-family:inherit;
-    font-size:12.5px;
-    font-weight:700;
-    background:none;
-    border:none;
-    color:var(--muted);
-    cursor:pointer;
-    text-decoration:underline;
-    padding:4px 2px;
-  }
-  .smart-chip-clear:hover{ color:var(--ink); }
-
   /* ---------- account / sync ---------- */
   .account-box{ display:inline-flex; align-items:center; gap:8px; }
   .account-box[hidden]{ display:none; }
@@ -724,14 +634,7 @@
         <h1>EBSA Alumni Network</h1>
       </div>
     </div>
-    <p class="tagline"><b>Search and filter UC Davis EBSA alumni by industry, company, or graduating year!</b><br><b>STAR anyone you're planning to reach out to in the future!</b></p>
-    <form class="smart-search-row" id="smartSearchForm">
-      <div class="smart-search-box">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v3M12 18v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M3 12h3M18 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/><circle cx="12" cy="12" r="3"/></svg>
-        <input type="text" id="smartSearchInput" placeholder="Try “fintech alumni from the last 3 years” or “alumni in NYC”" aria-label="Natural-language alumni search">
-      </div>
-      <button type="submit" class="chip-toggle" id="smartSearchBtn">Search</button>
-    </form>
+    <p class="tagline"><b>Search and filter UC Davis EBSA alumni by industry, company, location, or graduating year!</b><br><b>STAR anyone you're planning to reach out to in the future!</b></p>
     <div class="controls" id="mainControls">
       <div class="search-box">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
@@ -739,6 +642,7 @@
       </div>
       <select id="industryFilter" aria-label="Filter by industry"></select>
       <select id="yearFilter" aria-label="Filter by grad year"></select>
+      <select id="locationFilter" aria-label="Filter by location" hidden></select>
       <button type="button" class="chip-toggle" id="watchlistToggle" aria-pressed="false">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.2 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.2 5.9-.8z"/></svg>
         My watchlist
@@ -760,8 +664,6 @@
 </header>
 
 <div class="wrap">
-  <div class="smart-chip-row" id="smartChipRow" hidden></div>
-
   <div class="status-row">
     <span id="statusText"></span>
     <button type="button" class="clear" id="clearFilters">Clear filters</button>
@@ -1097,6 +999,7 @@
   var searchInput = document.getElementById("searchInput");
   var industrySelect = document.getElementById("industryFilter");
   var yearSelect = document.getElementById("yearFilter");
+  var locationSelect = document.getElementById("locationFilter");
   var watchlistToggle = document.getElementById("watchlistToggle");
   var grid = document.getElementById("grid");
   var statusText = document.getElementById("statusText");
@@ -1106,226 +1009,6 @@
   var errorDetail = document.getElementById("errorDetail");
   var updatedNote = document.getElementById("updatedNote");
   var watchlistOnly = false;
-
-  // ---------- natural-language search (free, fully client-side) ----------
-  // No server, no API key, no ongoing cost: this parses the query with plain
-  // keyword/pattern rules against the site's own distinct value lists, right
-  // in the browser. It won't understand truly open-ended phrasing the way an
-  // LLM would, but it covers the common cases (industry names and synonyms,
-  // metro-area locations, "last N years" / "class of 2022" / date ranges,
-  // company names) — and anything it doesn't recognize falls back to the
-  // existing plain substring search rather than coming up empty.
-  var smartFilter = { industries: [], companies: [], gradYearMin: null, gradYearMax: null, locations: [] };
-
-  function hasSmartFilter(){
-    return !!(smartFilter.industries.length || smartFilter.companies.length ||
-      smartFilter.locations.length || smartFilter.gradYearMin != null || smartFilter.gradYearMax != null);
-  }
-
-  function clearSmartFilter(){
-    smartFilter = { industries: [], companies: [], gradYearMin: null, gradYearMax: null, locations: [] };
-    renderSmartChips();
-  }
-
-  function distinctValues(key){
-    return Array.from(new Set(DATA.map(function(p){ return p[key]; }).filter(Boolean))).sort();
-  }
-
-  function renderSmartChips(){
-    var row = document.getElementById("smartChipRow");
-    if (!row) return;
-    var chips = [];
-    if (smartFilter.industries.length) chips.push({ key: "industries", label: smartFilter.industries.join(", ") });
-    if (smartFilter.gradYearMin != null || smartFilter.gradYearMax != null){
-      var label;
-      if (smartFilter.gradYearMin != null && smartFilter.gradYearMax != null){
-        label = smartFilter.gradYearMin === smartFilter.gradYearMax ? String(smartFilter.gradYearMin) : (smartFilter.gradYearMin + "–" + smartFilter.gradYearMax);
-      } else if (smartFilter.gradYearMin != null){
-        label = smartFilter.gradYearMin + "+";
-      } else {
-        label = "through " + smartFilter.gradYearMax;
-      }
-      chips.push({ key: "years", label: label });
-    }
-    if (smartFilter.companies.length) chips.push({ key: "companies", label: smartFilter.companies.join(", ") });
-    if (smartFilter.locations.length) chips.push({ key: "locations", label: smartFilter.locations.join(", ") });
-
-    if (!chips.length){ row.hidden = true; row.innerHTML = ""; return; }
-
-    row.hidden = false;
-    row.innerHTML = '<span class="smart-chip-label">Searching:</span>' +
-      chips.map(function(c){
-        return '<span class="smart-chip">'+esc(c.label)+
-          '<button type="button" class="smart-chip-x" data-key="'+c.key+'" aria-label="Remove this from the search">×</button></span>';
-      }).join("") +
-      '<button type="button" class="smart-chip-clear" id="smartChipClearAll">Clear search</button>';
-
-    Array.prototype.forEach.call(row.querySelectorAll(".smart-chip-x"), function(btn){
-      btn.addEventListener("click", function(){
-        var key = this.getAttribute("data-key");
-        if (key === "industries") smartFilter.industries = [];
-        else if (key === "years"){ smartFilter.gradYearMin = null; smartFilter.gradYearMax = null; }
-        else if (key === "companies") smartFilter.companies = [];
-        else if (key === "locations") smartFilter.locations = [];
-        renderSmartChips();
-        render();
-      });
-    });
-    var clearAllBtn = document.getElementById("smartChipClearAll");
-    if (clearAllBtn) clearAllBtn.addEventListener("click", function(){ clearSmartFilter(); render(); });
-  }
-
-  function hasWordOrPhrase(haystack, needle){
-    // Boundary-ish match so short needles ("la", "hr") don't match inside an
-    // unrelated word ("atlanta", "chr"). haystack is expected pre-padded
-    // with a leading/trailing space by the caller.
-    var escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    var re = new RegExp("(^|[^a-z0-9])" + escaped + "($|[^a-z0-9])", "i");
-    return re.test(haystack);
-  }
-
-  var INDUSTRY_SEARCH_SYNONYMS = {
-    "fintech":"Finance","finance":"Finance","financial":"Finance","banking":"Finance","investment":"Finance","investing":"Finance",
-    "tech":"Tech","technology":"Tech","software":"Tech","swe":"Tech",
-    "engineer":"Engineering","engineering":"Engineering",
-    "consulting":"Consulting","consultant":"Consulting",
-    "accounting":"Accounting",
-    "marketing":"Marketing","advertising":"Marketing",
-    "product":"Product Management","pm":"Product Management",
-    "data":"Data & Analytics","analytics":"Data & Analytics",
-    "entrepreneurship":"Entrepreneurship","startup":"Entrepreneurship","startups":"Entrepreneurship","founder":"Entrepreneurship",
-    "real estate":"Real Estate",
-    "retail":"Retail",
-    "healthcare":"Healthcare","health":"Healthcare","medical":"Healthcare",
-    "law":"Law","legal":"Law","attorney":"Law",
-    "hr":"HR & Recruiting","recruiting":"HR & Recruiting","recruiter":"HR & Recruiting","human resources":"HR & Recruiting",
-    "government":"Government & Nonprofit","nonprofit":"Government & Nonprofit","non-profit":"Government & Nonprofit","education":"Government & Nonprofit",
-    "operations":"Operations & Management","management":"Operations & Management",
-    "sales":"Sales",
-    "design":"Design","ux":"Design","ui":"Design"
-  };
-
-  var LOCATION_SEARCH_ALIASES = {
-    "nyc":"NYC","new york":"NYC","new york city":"NYC",
-    "bay area":"Bay Area","sf":"Bay Area","san francisco":"Bay Area","silicon valley":"Bay Area",
-    "los angeles":"LA",
-    "chicago":"Chicago","boston":"Boston","seattle":"Seattle","sacramento":"Sacramento","san diego":"San Diego",
-    "dc":"DC","washington dc":"DC","washington, dc":"DC"
-  };
-
-  function parseSmartQuery(query){
-    var q = " " + query.toLowerCase() + " ";
-    var result = { industries: [], companies: [], gradYearMin: null, gradYearMax: null, locations: [] };
-    var matched = false;
-
-    // ---- industries: match real tags present in the data first, then synonyms ----
-    var industryTags = distinctValues("industry").filter(function(v){ return v !== "Unspecified"; });
-    industryTags.forEach(function(tag){
-      if (hasWordOrPhrase(q, tag.toLowerCase()) && result.industries.indexOf(tag) === -1) result.industries.push(tag);
-    });
-    Object.keys(INDUSTRY_SEARCH_SYNONYMS).forEach(function(word){
-      var tag = INDUSTRY_SEARCH_SYNONYMS[word];
-      if (hasWordOrPhrase(q, word) && industryTags.indexOf(tag) !== -1 && result.industries.indexOf(tag) === -1){
-        result.industries.push(tag);
-      }
-    });
-    if (result.industries.length) matched = true;
-
-    // ---- locations: match real values present in the data, plus common aliases ----
-    var locations = distinctValues("location");
-    locations.forEach(function(loc){
-      if (hasWordOrPhrase(q, loc.toLowerCase()) && result.locations.indexOf(loc) === -1) result.locations.push(loc);
-    });
-    Object.keys(LOCATION_SEARCH_ALIASES).forEach(function(phrase){
-      var canon = LOCATION_SEARCH_ALIASES[phrase];
-      if (hasWordOrPhrase(q, phrase) && locations.indexOf(canon) !== -1 && result.locations.indexOf(canon) === -1){
-        result.locations.push(canon);
-      }
-    });
-    if (result.locations.length) matched = true;
-
-    // ---- companies: match real company names present in the data ----
-    distinctValues("company").forEach(function(c){
-      if (hasWordOrPhrase(q, c.toLowerCase())){
-        result.companies.push(c);
-        matched = true;
-      }
-    });
-
-    // ---- grad years / relative time ranges ----
-    var currentYear = new Date().getFullYear();
-    var m;
-    if ((m = q.match(/(?:last|past)\s+(\d+)\s+years?/))){
-      result.gradYearMin = currentYear - parseInt(m[1], 10) + 1;
-      result.gradYearMax = currentYear;
-      matched = true;
-    } else if (/recent grad|recent alumn/.test(q)){
-      result.gradYearMin = currentYear - 3;
-      result.gradYearMax = currentYear;
-      matched = true;
-    } else if ((m = q.match(/(19|20)\d{2}\s*(?:-|–|to|through)\s*((?:19|20)\d{2})/))){
-      var years = [parseInt(m[0].match(/(19|20)\d{2}/)[0], 10), parseInt(m[2], 10)];
-      result.gradYearMin = Math.min.apply(null, years);
-      result.gradYearMax = Math.max.apply(null, years);
-      matched = true;
-    } else if ((m = q.match(/(?:since|after|from)\s+((?:19|20)\d{2})/))){
-      result.gradYearMin = parseInt(m[1], 10);
-      matched = true;
-    } else if ((m = q.match(/before\s+((?:19|20)\d{2})/))){
-      result.gradYearMax = parseInt(m[1], 10) - 1;
-      matched = true;
-    } else if ((m = q.match(/class of\s+((?:19|20)\d{2})/)) || (m = q.match(/((?:19|20)\d{2})\s+grad/))){
-      var y = parseInt(m[1], 10);
-      result.gradYearMin = y;
-      result.gradYearMax = y;
-      matched = true;
-    } else if ((m = q.match(/\b((?:19|20)\d{2})\b/))){
-      var y2 = parseInt(m[1], 10);
-      result.gradYearMin = y2;
-      result.gradYearMax = y2;
-      matched = true;
-    }
-
-    result.matched = matched;
-    return result;
-  }
-
-  function applySmartSearchResult(result){
-    smartFilter = {
-      industries: Array.isArray(result.industries) ? result.industries : [],
-      companies: Array.isArray(result.companies) ? result.companies : [],
-      gradYearMin: Number.isFinite(result.gradYearMin) ? result.gradYearMin : null,
-      gradYearMax: Number.isFinite(result.gradYearMax) ? result.gradYearMax : null,
-      locations: Array.isArray(result.locations) ? result.locations : []
-    };
-    // Smart search stands alone — reset the manual controls so results reflect
-    // only what was actually asked for, not a leftover dropdown selection too.
-    searchInput.value = "";
-    industrySelect.value = "";
-    yearSelect.value = "";
-    renderSmartChips();
-    render();
-  }
-
-  function fallbackPlainSearch(query){
-    // Nothing recognizable in the query — degrade quietly to the existing
-    // plain substring search rather than showing an empty result set.
-    clearSmartFilter();
-    searchInput.value = query;
-    render();
-  }
-
-  function runSmartSearch(query){
-    query = (query || "").trim();
-    if (!query) return;
-
-    var parsed = parseSmartQuery(query);
-    if (!parsed.matched){
-      fallbackPlainSearch(query);
-      return;
-    }
-    applySmartSearchResult(parsed);
-  }
 
   function personId(p, i){ return (p.name + "|" + p.email + "|" + i).toLowerCase(); }
 
@@ -1479,30 +1162,16 @@
     var q = searchInput.value.trim().toLowerCase();
     var ind = industrySelect.value;
     var yr = yearSelect.value;
+    var loc = locationSelect.value;
 
     var results = DATA.filter(function(p){
       if (watchlistOnly && !watchlist[p._id]) return false;
       if (ind && p.industry !== ind) return false;
       if (yr && p.gradYear !== yr) return false;
+      if (loc && p.location !== loc) return false;
       if (q){
         var hay = (p.name+" "+p.company+" "+p.position+" "+p.email+" "+p.industryRaw+" "+p.location).toLowerCase();
         if (hay.indexOf(q) === -1) return false;
-      }
-      // ---- smart (natural-language) search filters, if any are active ----
-      if (smartFilter.industries.length && smartFilter.industries.indexOf(p.industry) === -1) return false;
-      if (smartFilter.companies.length){
-        var companyHit = smartFilter.companies.some(function(c){ return c.toLowerCase() === (p.company||"").toLowerCase(); });
-        if (!companyHit) return false;
-      }
-      if (smartFilter.locations.length){
-        var locationHit = smartFilter.locations.some(function(l){ return l.toLowerCase() === (p.location||"").toLowerCase(); });
-        if (!locationHit) return false;
-      }
-      if (smartFilter.gradYearMin != null || smartFilter.gradYearMax != null){
-        var py = p.gradYear ? parseInt(p.gradYear, 10) : NaN;
-        if (isNaN(py)) return false;
-        if (smartFilter.gradYearMin != null && py < smartFilter.gradYearMin) return false;
-        if (smartFilter.gradYearMax != null && py > smartFilter.gradYearMax) return false;
       }
       return true;
     });
@@ -1539,10 +1208,20 @@
       .filter(Boolean)
       .sort(function(a,b){ return b - a; });
 
+    var locations = Array.from(new Set(DATA.map(function(p){ return p.location; })))
+      .filter(Boolean)
+      .sort();
+
     industrySelect.innerHTML = '<option value="">All industries</option>' +
       industries.map(function(t){ return '<option value="'+esc(t)+'">'+esc(t)+'</option>'; }).join("");
     yearSelect.innerHTML = '<option value="">All grad years</option>' +
       years.map(function(y){ return '<option value="'+esc(y)+'">Class of '+esc(y)+'</option>'; }).join("");
+    locationSelect.innerHTML = '<option value="">All locations</option>' +
+      locations.map(function(l){ return '<option value="'+esc(l)+'">'+esc(l)+'</option>'; }).join("");
+    // Hide the location dropdown entirely until the sheet has at least one
+    // location filled in, so it doesn't sit there empty while the board is
+    // still working through the 189 rows.
+    locationSelect.hidden = locations.length === 0;
 
     if (opts.stale){
       updatedNote.hidden = false;
@@ -1551,20 +1230,10 @@
       updatedNote.hidden = true;
     }
 
-    searchInput.addEventListener("input", function(){
-      // Manual search and smart search are mutually exclusive — typing in the
-      // plain box supersedes whatever the natural-language search set up.
-      if (hasSmartFilter()){ clearSmartFilter(); }
-      render();
-    });
-    industrySelect.addEventListener("change", function(){
-      if (hasSmartFilter()){ clearSmartFilter(); }
-      render();
-    });
-    yearSelect.addEventListener("change", function(){
-      if (hasSmartFilter()){ clearSmartFilter(); }
-      render();
-    });
+    searchInput.addEventListener("input", render);
+    industrySelect.addEventListener("change", render);
+    yearSelect.addEventListener("change", render);
+    locationSelect.addEventListener("change", render);
     watchlistToggle.addEventListener("click", function(){
       watchlistOnly = !watchlistOnly;
       this.setAttribute("aria-pressed", watchlistOnly);
@@ -1574,29 +1243,11 @@
       searchInput.value = "";
       industrySelect.value = "";
       yearSelect.value = "";
+      locationSelect.value = "";
       watchlistOnly = false;
       watchlistToggle.setAttribute("aria-pressed","false");
-      clearSmartFilter();
-      var smartInput = document.getElementById("smartSearchInput");
-      if (smartInput) smartInput.value = "";
       render();
     });
-
-    var smartSearchForm = document.getElementById("smartSearchForm");
-    var smartSearchInput = document.getElementById("smartSearchInput");
-    if (smartSearchForm && smartSearchInput){
-      smartSearchForm.addEventListener("submit", function(e){
-        e.preventDefault();
-        // Smart search and the manual controls are mutually exclusive — a new
-        // natural-language query replaces any manual filter state.
-        searchInput.value = "";
-        industrySelect.value = "";
-        yearSelect.value = "";
-        watchlistOnly = false;
-        watchlistToggle.setAttribute("aria-pressed", "false");
-        runSmartSearch(smartSearchInput.value);
-      });
-    }
 
     loadingState.hidden = true;
     document.getElementById("mainControls").hidden = false;
