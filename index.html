@@ -6,7 +6,7 @@
 <title>EBSA Alumni Network</title>
 <meta name="description" content="Search and connect with UC Davis EBSA alumni by industry, company, and grad year.">
 <meta name="theme-color" content="#0099cc">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='0' y='0' width='14.5' height='14.5' rx='2' fill='%23ffffff' stroke='%23e3eef3' stroke-width='1'/%3E%3Crect x='17.5' y='0' width='14.5' height='14.5' rx='2' fill='%2352cceb'/%3E%3Crect x='0' y='17.5' width='14.5' height='14.5' rx='2' fill='%237ecfea'/%3E%3Crect x='17.5' y='17.5' width='14.5' height='14.5' rx='2' fill='%230099cc'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='17.5' y='0' width='14.5' height='14.5' fill='%2352cceb'/%3E%3Crect x='0' y='17.5' width='14.5' height='14.5' fill='%237ecfea'/%3E%3Crect x='17.5' y='17.5' width='14.5' height='14.5' fill='%230099cc'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -140,8 +140,6 @@
     width:40px;
     height:40px;
     flex:0 0 auto;
-    border-radius:10px;
-    box-shadow:var(--shadow-sm);
   }
   .brand-text{ min-width:0; }
   h1{
@@ -492,11 +490,40 @@
     gap:4px;
   }
   .outreach-entry{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:6px;
     font-size:12px;
     color:var(--ink);
     line-height:1.4;
   }
+  .outreach-entry-text{ min-width:0; }
   .outreach-entry b{ color:var(--accent-ink); font-weight:700; }
+  .outreach-entry-tag{
+    display:inline-block;
+    font-size:9.5px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--accent-ink);
+    background:var(--accent-soft);
+    border-radius:4px;
+    padding:2px 5px;
+    margin-right:5px;
+    vertical-align:middle;
+  }
+  .outreach-entry-del{
+    flex:0 0 auto;
+    background:none;
+    border:none;
+    cursor:pointer;
+    color:var(--muted-2);
+    font-size:15px;
+    line-height:1;
+    padding:0 2px;
+  }
+  .outreach-entry-del:hover{ color:var(--ink); }
   .outreach-add-row{
     display:flex;
     gap:6px;
@@ -599,10 +626,9 @@
   <div class="top-inner">
     <div class="brand-row">
       <svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true">
-        <rect x="0" y="0" width="14.5" height="14.5" rx="2" fill="#ffffff" stroke="#e3eef3" stroke-width="1"/>
-        <rect x="17.5" y="0" width="14.5" height="14.5" rx="2" fill="#52cceb"/>
-        <rect x="0" y="17.5" width="14.5" height="14.5" rx="2" fill="#7ecfea"/>
-        <rect x="17.5" y="17.5" width="14.5" height="14.5" rx="2" fill="#0099cc"/>
+        <rect x="17.5" y="0" width="14.5" height="14.5" fill="#52cceb"/>
+        <rect x="0" y="17.5" width="14.5" height="14.5" fill="#7ecfea"/>
+        <rect x="17.5" y="17.5" width="14.5" height="14.5" fill="#0099cc"/>
       </svg>
       <div class="brand-text">
         <h1>EBSA Alumni Network</h1>
@@ -948,11 +974,38 @@
     return '<svg viewBox="0 0 24 24" fill="'+(filled?"currentColor":"none")+'" stroke="currentColor" stroke-width="1.8"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.2 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.2 5.9-.8z"/></svg>';
   }
 
+  function statusLabel(key){
+    for (var i = 0; i < STATUS_OPTIONS.length; i++){
+      if (STATUS_OPTIONS[i][0] === key) return STATUS_OPTIONS[i][1];
+    }
+    return null;
+  }
+
+  function outreachEntryHtml(entry, idx){
+    var label = entry.status ? statusLabel(entry.status) : null;
+    var tag = label ? '<span class="outreach-entry-tag">'+esc(label)+'</span> ' : '';
+    return '<div class="outreach-entry" data-idx="'+idx+'">' +
+      '<span class="outreach-entry-text">'+tag+'<b>'+esc(entry.date)+'</b> — '+esc(entry.text)+'</span>' +
+      '<button type="button" class="outreach-entry-del" data-idx="'+idx+'" aria-label="Delete this note">×</button>' +
+    '</div>';
+  }
+
   function outreachLogListHtml(logs){
     if (!logs.length) return "";
-    return '<div class="outreach-log-list">' + logs.map(function(entry){
-      return '<div class="outreach-entry"><b>'+esc(entry.date)+'</b> — '+esc(entry.text)+'</div>';
+    return '<div class="outreach-log-list">' + logs.map(function(entry, idx){
+      return outreachEntryHtml(entry, idx);
     }).join("") + '</div>';
+  }
+
+  function refreshOutreachLogList(panel, rec){
+    var existing = panel.querySelector(".outreach-log-list");
+    var html = outreachLogListHtml(rec.logs);
+    if (existing){
+      if (html){ existing.outerHTML = html; }
+      else { existing.remove(); }
+    } else if (html){
+      panel.querySelector(".outreach-head").insertAdjacentHTML("afterend", html);
+    }
   }
 
   function outreachPanelHtml(p){
@@ -1038,20 +1091,25 @@
       if (!text) return;
       var rec = ensureOutreach(id);
       var dateStr = new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" });
-      rec.logs.push({ date: dateStr, text: text });
+      rec.logs.push({ date: dateStr, text: text, status: rec.status });
       saveOutreach(outreach);
       outreachInput.value = "";
-      var listEl = outreachPanel.querySelector(".outreach-log-list");
-      var entryHtml = '<div class="outreach-entry"><b>'+esc(dateStr)+'</b> — '+esc(text)+'</div>';
-      if (listEl){
-        listEl.insertAdjacentHTML("beforeend", entryHtml);
-      } else {
-        outreachPanel.querySelector(".outreach-head").insertAdjacentHTML("afterend", '<div class="outreach-log-list">'+entryHtml+'</div>');
-      }
+      refreshOutreachLogList(outreachPanel, rec);
     }
     outreachAddBtn.addEventListener("click", addOutreachEntry);
     outreachInput.addEventListener("keydown", function(e){
       if (e.key === "Enter"){ e.preventDefault(); addOutreachEntry(); }
+    });
+
+    outreachPanel.addEventListener("click", function(e){
+      var delBtn = e.target.closest(".outreach-entry-del");
+      if (!delBtn) return;
+      var idx = parseInt(delBtn.getAttribute("data-idx"), 10);
+      if (isNaN(idx)) return;
+      var rec = ensureOutreach(p._id);
+      rec.logs.splice(idx, 1);
+      saveOutreach(outreach);
+      refreshOutreachLogList(outreachPanel, rec);
     });
 
     return el;
